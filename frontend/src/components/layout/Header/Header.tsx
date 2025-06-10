@@ -3,7 +3,7 @@ import "./Header.scss";
 const Header = () => {
     return (
         <div className="header">
-            <h1>요기가 Header </h1>
+            <h1>관리자 시스템 </h1>
         </div>
     );
 };

@@ -1,14 +1,24 @@
 // src/App.tsx
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Layout from './components/layout/Layout.tsx';
+import Login from './pages/Login.tsx';
 import MemberList from './pages/MemberList';
 import Dashboard from './pages/Dashboard.tsx';
+import ProtectedRoute from "./components/ProtectRoute.tsx";
 
 function App() {
     return (
         <BrowserRouter>
-            <Routes>
-                <Route path="/" element={<Layout />}>
+            <Routes> {/* ✅ Routes로 감싸기 */}
+                <Route path="/login" element={<Login />} />
+                <Route
+                    path="/"
+                    element={
+                        <ProtectedRoute>
+                            <Layout />
+                        </ProtectedRoute>
+                    }
+                >
                     <Route index element={<Dashboard />} />
                     <Route path="member" element={<MemberList />} />
                 </Route>
@@ -16,5 +26,6 @@ function App() {
         </BrowserRouter>
     );
 }
+
 
 export default App;

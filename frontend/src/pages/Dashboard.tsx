@@ -55,14 +55,7 @@ const Dashboard: React.FC = () => {
     ];
 
     return (
-        <Box sx={{ flexGrow: 1, p: 3 }}>
-            <Typography variant="h4" gutterBottom>
-                대시보드
-            </Typography>
-            <Typography variant="body1" color="text.secondary" gutterBottom>
-                시스템 현황을 한눈에 확인하세요
-            </Typography>
-
+        <Box sx={{ flexGrow: 1, p: 3 }} className="content">
             {/* 통계 카드 섹션 */}
             <Grid container spacing={3} sx={{ mb: 3 }}>
                 {statsData.map((stat, index) => (

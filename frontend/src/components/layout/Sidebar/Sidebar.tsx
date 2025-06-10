@@ -14,7 +14,17 @@ const Sidebar = () => {
 
     return (
         <div className="side">
-            <h1>요기가 Side</h1>
+                <List>
+                    {menuItems.map((item) => (
+                        <ListItem
+                            button
+                            key={item.text}
+                            onClick={() => navigate(item.path)}
+                        >
+                            <ListItemText primary={item.text} />
+                        </ListItem>
+                    ))}
+                </List>
         </div>
     );
 };
