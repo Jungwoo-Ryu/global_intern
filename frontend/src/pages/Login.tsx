@@ -1,31 +1,27 @@
 import { useState } from "react";
+import {useNavigate} from "react-router-dom"
 import { Form, Button, Alert, Card, Container } from "react-bootstrap";
+import authService from "../services/authService.ts";
 
 const Login = () => {
+    const navigate = useNavigate();
     const [inputUsername, setInputUsername] = useState("user01");
     const [inputPassword, setInputPassword] = useState("pass01");
     const [show, setShow] = useState(false);
     const [loading, setLoading] = useState(false);
 
+    const service = authService;
+
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
         setLoading(true);
         setShow(false);
-
-        await delay(500);
-        console.log(`Username: ${inputUsername}, Password: ${inputPassword}`);
-
-        if (inputUsername !== "admin" || inputPassword !== "admin") {
-            setShow(true);
-        } else {
-            console.log("로그인 성공!");
-        }
+        const result = await service.login(inputUsername, inputPassword);
         setLoading(false);
+        if(result) {
+            navigate('/member', { replace: true }); // 뒤로가기 시 로그인 페이지로 돌아가지 않음
+        }
     };
-
-    function delay(ms: number) {
-        return new Promise((resolve) => setTimeout(resolve, ms));
-    }
 
     return (
         <div className="login-container flex flex-row bg-black">

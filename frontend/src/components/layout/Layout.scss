@@ -1,0 +1,12 @@
+// src/components/layout/Layout.scss
+.layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.main-container {
+  display: flex; // 핵심: Flexbox 사용
+  flex: 1;
+  overflow: hidden;
+}

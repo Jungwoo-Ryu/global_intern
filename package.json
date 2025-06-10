@@ -5,6 +5,7 @@
     "@mui/icons-material": "^7.1.1",
     "@mui/material": "^7.1.1",
     "bootstrap": "^5.3.6",
-    "react-bootstrap": "^2.10.10"
+    "react-bootstrap": "^2.10.10",
+    "recharts": "^2.15.3"
   }
 }

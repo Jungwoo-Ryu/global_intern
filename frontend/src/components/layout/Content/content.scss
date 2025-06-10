@@ -1,0 +1,21 @@
+.content {
+  // inline-block 제거, flex 사용
+  flex: 1;
+  min-width: 400px;
+  height: 100%;
+  border: 3px solid blueviolet;
+  border-radius: 8px;
+  padding: 24px;
+  margin-left: 16px; // Sidebar와의 간격
+  background-color: #fafafa;
+  overflow-y: auto;
+
+  h1 {
+    margin: 0 0 20px 0;
+    padding: 16px;
+    text-align: center;
+    color: blueviolet;
+    background-color: rgba(138, 43, 226, 0.1);
+    border-radius: 4px;
+  }
+}

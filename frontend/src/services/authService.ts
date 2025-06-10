@@ -44,13 +44,20 @@ const userManager = {
 // 인증 서비스
 const authService = {
     // 로그인
-    login: async (credentials: LoginRequest): Promise<LoginResponse> => {
-        const response = await axios.post<LoginResponse>(`${API_URL}/login`, credentials);
-        const { user } = response.data;
-
-        userManager.setUser(user);
-
-        return response.data;
+    login: async (username: string, password: string) => {
+        const requestBody = {
+            username: username,
+            password: password,
+        }
+        const response = await axios.post(`${API_URL}/login`, requestBody);
+        debugger
+        const { status } = response;
+        if (status === 200){
+            localStorage.setItem('session', 'valid')
+            return true;
+        } else {
+            return false;
+        }
     },
 
     // 로그아웃
