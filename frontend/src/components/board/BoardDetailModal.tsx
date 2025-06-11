@@ -3,9 +3,9 @@ import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 import Button from '@mui/material/Button';
 import Form from 'react-bootstrap/Form';
-import memberService from '../../services/memberService.ts';
+import boardService from '../../services/boardService.ts';
 import { useEffect, useState } from "react";
-import type {Member} from "../../model/member.model.ts";
+import type {Board} from "../../model/board.model.ts";
 import { toast } from 'react-toastify';
 
 const style = {
@@ -22,25 +22,25 @@ const style = {
     pb: 3,
 };
 
-
 interface cellRendererParams {
-    memberId: number;
+    boardId: number;
     callback: () => void;
 }
 
-export default function MemberDetailModal({ memberId, callback }: cellRendererParams) {
-    console.log(memberId)
+export default function BoardDetailModal({ boardId, callback }: cellRendererParams) {
+    console.log(boardId)
 
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
 
     // Vue의 ref와 같은 역할을 하는 상태
-    const [member, setMember] = useState<Member>({
-        id: 0,
-        name: '',
-        email: '',
-        phone: '',
-        birthDate: '',
+    const [board, setBoard] = useState<Board>({
+        boardId: null,
+        title: '',
+        content: '',
+        createdAt: '',
+        createdBy: 0,
+        authorName: ''
     });
 
     const handleOpen = () => {
@@ -52,8 +52,8 @@ export default function MemberDetailModal({ memberId, callback }: cellRendererPa
     };
 
     // 입력값 변경 핸들러 (Vue의 v-model과 같은 역할)
-    const handleInputChange = (field: keyof Member, value: string | number) => {
-        setMember(prev => ({
+    const handleInputChange = (field: keyof Board, value: string | number) => {
+        setBoard(prev => ({
             ...prev,
             [field]: value
         }));
@@ -63,26 +63,27 @@ export default function MemberDetailModal({ memberId, callback }: cellRendererPa
     const handleSave = async () => {
         try {
             setLoading(true);
-            await memberService.update(memberId, member);
+            await boardService.update(boardId, board);
             // 성공 시에만 실행
             handleClose(); // 모달 닫기
             callback(); // 데이터 재조회 + 알림
 
         } catch (error) {
             console.error('저장 실패:', error);
+            toast.error('저장에 실패했습니다.');
             // 실패 시에는 모달을 닫지 않음 (사용자가 수정할 수 있도록)
         } finally {
             setLoading(false);
         }
     };
 
-    // 저장 핸들러
+    // 삭제 핸들러
     const handleDelete = async () => {
         try {
             setLoading(true);
 
-            await memberService.delete(memberId);
-            console.log('회원 정보가 저장되었습니다.');
+            await boardService.delete(boardId);
+            console.log('게시글이 삭제되었습니다.');
 
             handleClose(); // 모달 닫기
 
@@ -91,29 +92,28 @@ export default function MemberDetailModal({ memberId, callback }: cellRendererPa
                 callback();
             }
         } catch (error) {
-            console.error('저장 실패:', error);
-            alert('저장에 실패했습니다.');
+            console.error('삭제 실패:', error);
+            toast.error('삭제에 실패했습니다.');
         } finally {
             setLoading(false);
         }
     };
 
-
-    // 컴포넌트 마운트 시 회원 데이터 로드
+    // 컴포넌트 마운트 시 게시글 데이터 로드
     useEffect(() => {
-        const fetchMember = async () => {
+        const fetchBoard = async () => {
             try {
-                const memberData = await memberService.get(memberId);
-                setMember(memberData);
+                const boardData = await boardService.get(boardId);
+                setBoard(boardData);
             } catch (error) {
-                console.error('회원 데이터 로드 실패:', error);
+                console.error('게시글 데이터 로드 실패:', error);
             }
         };
 
-        if (memberId) {
-            fetchMember();
+        if (boardId) {
+            fetchBoard();
         }
-    }, [memberId, open]);
+    }, [boardId, open]);
 
     return (
         <div>
@@ -127,49 +127,52 @@ export default function MemberDetailModal({ memberId, callback }: cellRendererPa
                 <Box sx={{ ...style, width: 800 }}>
                     <Form>
                         <Form.Group className="mb-3">
-                            <Form.Label>이름</Form.Label>
+                            <Form.Label>제목</Form.Label>
                             <Form.Control
                                 type="text"
-                                value={member.name}
-                                onChange={(e) => handleInputChange('name', e.target.value)}
-                                placeholder="이름을 입력하세요"
+                                value={board.title}
+                                onChange={(e) => handleInputChange('title', e.target.value)}
+                                placeholder="제목을 입력하세요"
                             />
                         </Form.Group>
 
                         <Form.Group className="mb-3">
-                            <Form.Label>이메일</Form.Label>
+                            <Form.Label>내용</Form.Label>
                             <Form.Control
-                                type="email"
-                                value={member.email}
-                                onChange={(e) => handleInputChange('email', e.target.value)}
-                                placeholder="이메일을 입력하세요"
+                                as="textarea"
+                                rows={5}
+                                value={board.content}
+                                onChange={(e) => handleInputChange('content', e.target.value)}
+                                placeholder="내용을 입력하세요"
                             />
                         </Form.Group>
 
                         <Form.Group className="mb-3">
-                            <Form.Label>전화번호</Form.Label>
+                            <Form.Label>작성자</Form.Label>
                             <Form.Control
                                 type="text"
-                                value={member.phone}
-                                onChange={(e) => handleInputChange('phone', e.target.value)}
-                                placeholder="전화번호를 입력하세요"
+                                value={board.authorName || ''}
+                                readOnly
+                                placeholder="작성자"
                             />
                         </Form.Group>
 
                         <Form.Group className="mb-3">
-                            <Form.Label>생년월일</Form.Label>
+                            <Form.Label>작성일</Form.Label>
                             <Form.Control
-                                type="date"
-                                value={member.birthDate}
-                                onChange={(e) => handleInputChange('birthDate', e.target.value)}
+                                type="text"
+                                value={board.createdAt}
+                                readOnly
+                                placeholder="작성일"
                             />
                         </Form.Group>
+
                         <div className="d-flex justify-content-end gap-2">
                             <Button
                                 variant="primary"
                                 onClick={handleDelete}
                                 disabled={loading}
-                                class={"btn btn-danger"}
+                                className="btn btn-danger"
                             >
                                 삭제
                             </Button>
@@ -178,14 +181,14 @@ export default function MemberDetailModal({ memberId, callback }: cellRendererPa
                                 variant="primary"
                                 onClick={handleSave}
                                 disabled={loading}
-                                class={"btn btn-primary"}
+                                className="btn btn-primary"
                             >
                                 저장
                             </Button>
                             <Button
                                 variant="secondary"
                                 onClick={handleClose}
-                                class={"btn btn-close-white"}
+                                className="btn btn-secondary"
                             >
                                 닫기
                             </Button>

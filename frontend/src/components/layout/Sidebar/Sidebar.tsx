@@ -1,6 +1,6 @@
 // src/components/layout/Sidebar/Sidebar.tsx
 import "./side.scss";
-import { Drawer, List, ListItem, ListItemText } from '@mui/material';
+import { List, ListItem, ListItemText } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 
 const Sidebar = () => {

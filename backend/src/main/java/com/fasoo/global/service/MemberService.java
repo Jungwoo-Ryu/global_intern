@@ -2,12 +2,12 @@ package com.fasoo.global.service;
 
 import com.fasoo.global.domain.Member;
 import com.fasoo.global.repository.MemberRepository;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,11 +16,10 @@ import java.util.Optional;
 public class MemberService {
     private final MemberRepository memberRepository;
 
-    public List<Member> getMemberList(){
-        return memberRepository.findAll();
-    }
-
-    public Optional<Member> getMember(Long id) {
+    public List<Member> list(){
+        return memberRepository.findAll(Sort.by(Sort.Direction.DESC, "updatedAt"));
+}
+    public Optional<Member> get(Long id) {
         return memberRepository.findById(id);
     }
 
@@ -37,13 +36,11 @@ public class MemberService {
 
     @Transactional
     public void update(Member member) {
-        Member existingMember = memberRepository.findById(member.getId())
-                .orElseThrow(() -> new EntityNotFoundException("회원을 찾을 수 없습니다"));
-        existingMember.setBirthDate(member.getBirthDate());
-        existingMember.setPassword(member.getPassword());
-        existingMember.setPhone(member.getPhone());
+        member.setUpdatedAt(LocalDateTime.now());
+        memberRepository.save(member);
     }
 
+    @Transactional
     public void delete(Long id) {
         memberRepository.deleteById(id);
     }

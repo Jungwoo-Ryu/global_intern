@@ -1,7 +1,7 @@
 package com.fasoo.global.resource;
 
-import com.fasoo.global.domain.Member;
-import com.fasoo.global.service.MemberService;
+import com.fasoo.global.domain.Board;
+import com.fasoo.global.service.BoardService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -14,16 +14,15 @@ import java.util.Optional;
 @RequestMapping("/api")
 @RequiredArgsConstructor
 @Slf4j
-public class MemberResource {
-    private final MemberService memberService;
-
+public class BoardResource {
+    private final BoardService boardSerivce;
     /**
      * Member 목록 조회
      * */
-    @GetMapping("/member/list")
-    public ResponseEntity<List<Member>> getMemberList(){
+    @GetMapping("/board/list")
+    public ResponseEntity<List<Board>> getMemberList(){
         try {
-            List<Member> memberList = memberService.list();
+            List<Board> memberList = boardSerivce.list();
 
             if (memberList.isEmpty()) {
                 return ResponseEntity.noContent().build(); // 204 No Content
@@ -42,13 +41,13 @@ public class MemberResource {
      * Member 상세 조회
      * @param id: String
      */
-    @GetMapping("/member/{id}")
-    public ResponseEntity<Member> getMember(@PathVariable Long id) {
+    @GetMapping("/board/{id}")
+    public ResponseEntity<Board> getMember(@PathVariable Long id) {
         try {
-            Optional<Member> memberOptional  = memberService.get(id);
+            Optional<Board> BoardOptional  = boardSerivce.get(id);
 
-            return memberOptional
-                    .map(member -> ResponseEntity.ok(member))
+            return BoardOptional
+                    .map(board -> ResponseEntity.ok(board))
                     .orElse(ResponseEntity.notFound().build());
 
         } catch (IllegalArgumentException e) {
@@ -62,12 +61,12 @@ public class MemberResource {
     }
 
     /**
-     * Member 등록
-     * @param member
+     * board 등록
+     * @param board
      * */
-    @PostMapping("/member")
-    public ResponseEntity<?> addMember(@RequestBody Member member){
-        Long id = memberService.add(member);
+    @PostMapping("/board")
+    public ResponseEntity<?> addMember(@RequestBody Board board){
+        Long id = boardSerivce.add(board);
         if  (id == null) {
             return ResponseEntity.badRequest().build();
         }
@@ -75,14 +74,14 @@ public class MemberResource {
     }
 
     /**
-     * Member 수정
+     * board 수정
      * @param id
-     * @param member
+     * @param board
      * */
-    @PutMapping("/member/{id}")
-    public ResponseEntity<?> updateMember(@PathVariable String id, @RequestBody Member member){
+    @PutMapping("/board/{id}")
+    public ResponseEntity<?> updateBoard(@PathVariable String id, @RequestBody Board board){
 
-        memberService.update(member);
+        boardSerivce.update(board);
         return ResponseEntity.ok().build();
     }
 
@@ -90,9 +89,9 @@ public class MemberResource {
      * Member 삭제
      * @param id
      * */
-    @DeleteMapping("/member/{id}")
-    public ResponseEntity<?> deleteMember(@PathVariable Long id){
-        memberService.delete(id);
+    @DeleteMapping("/board/{id}")
+    public ResponseEntity<?> deleteBoard(@PathVariable Long id){
+        boardSerivce.delete(id);
         return ResponseEntity.ok().build();
     }
 }
