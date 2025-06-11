@@ -15,3 +15,12 @@
   overflow-x: hidden;
   scrollbar-gutter: stable
 }
+.title-area {
+  height: 80px; // 제목 영역 높이
+  background-color: #f8f9fa;
+  border-bottom: 2px solid #dee2e6;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  flex-shrink: 0; // 고정 크기
+}

@@ -1,9 +1,14 @@
-
 import "./Header.scss";
-const Header = () => {
+
+interface HeaderProps {
+    title?: string;
+}
+
+const Header: React.FC<HeaderProps> = ({
+    title= "대시보드"}) => {
     return (
         <div className="header">
-            <h1>관리자 시스템 </h1>
+            <h1>관리자 시스템 - {title}</h1>
         </div>
     );
 };

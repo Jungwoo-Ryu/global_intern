@@ -9,7 +9,7 @@ const Sidebar = () => {
     const menuItems = [
         { text: '대시보드', path: '/' },
         { text: '회원 관리', path: '/member' },
-        { text: '설정', path: '/settings' }
+        { text: '게시판 관리', path: '/board' },
     ];
 
     return (
