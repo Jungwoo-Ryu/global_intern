@@ -32,7 +32,6 @@ const Layout = () => {
 
                 <div className="content">
                     <Outlet /> {/* 페이지별 컨텐츠가 여기에 렌더링 */}
-                    {/*asd*/}
                 </div>
             </div>
         </div>

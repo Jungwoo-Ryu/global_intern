@@ -2,6 +2,7 @@ import { useState } from "react";
 import {useNavigate} from "react-router-dom"
 import { Form, Button, Alert, Card, Container } from "react-bootstrap";
 import authService from "../services/authService.ts";
+import 'bootstrap/dist/css/bootstrap.min.css'; // 여기에 추가
 
 const Login = () => {
     const navigate = useNavigate();
