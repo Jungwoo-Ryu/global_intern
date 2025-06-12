@@ -1,5 +1,6 @@
 package com.fasoo.global.resource;
 
+import com.fasoo.global.domain.Member;
 import com.fasoo.global.service.AuthService;
 import com.fasoo.global.vo.LoginRequest;
 import lombok.RequiredArgsConstructor;
@@ -17,8 +18,9 @@ public class AuthResource {
 
     @PostMapping("/auth/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
-        boolean result = authService.login(loginRequest);
-        return result ? ResponseEntity.ok().build() : ResponseEntity.badRequest().build();
+        Member member = authService.login(loginRequest);
+        return member != null ? ResponseEntity.ok(member.getId()) : ResponseEntity.badRequest().build();
     }
+
 
 }

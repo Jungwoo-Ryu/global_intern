@@ -5,6 +5,7 @@ import { AgGridReact } from "ag-grid-react";
 import boardService from "../services/boardService";
 import BoardDetailModal from "../components/board/BoardDetailModal.tsx";
 import {Board} from "../model/board.model.ts";
+import Button from '@mui/material/Button';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -13,31 +14,56 @@ const BoardPage: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+    // 모달 상태 관리
+    const [selectedBoardId, setSelectedBoardId] = useState<number | null>(null);
+    const [modalOpen, setModalOpen] = useState(false);
+
     const callback = () => {
-        alert('저장되었습니다.'); // 알림 표시
-        fetchBoards(); // 데이터 재조회
+        debugger
+        alert('저장되었습니다.');
+        fetchBoards();
+        setModalOpen(false); // 모달 닫기
     };
 
-    // 게시글 데이터를 위한 컬럼 정의
+    // 상세 조회 버튼 클릭 핸들러
+    const handleDetailClick = (boardId: number) => {
+        setSelectedBoardId(boardId);
+        setModalOpen(true);
+    };
+
+    // 게시글 등록 버튼 클릭 핸들러
+    const handleCreateClick = () => {
+        setSelectedBoardId(null);
+        setModalOpen(true);
+    };
+
+    // 간단한 버튼 컴포넌트 (ag-grid 내부용)
+    const ActionCell = (props: any) => (
+        <Button
+            onClick={() => handleDetailClick(props.data.boardId)}
+            variant="outlined"
+            size="small"
+            color="info"
+        >
+            상세 조회
+        </Button>
+    );
+
     const colDefs = useMemo(() => [
         { field: "boardId", headerName: "ID", width: 80 },
         { field: "title", headerName: "제목", width: 200 },
-        { field: "content", headerName: "내용", width: 300 },
-        { field: "authorName", headerName: "작성자", width: 120 },
+        { field: "content", headerName: "내용" },
+        { field: "createdBy.name", headerName: "작성자", width: 120 },
         { field: "createdAt", headerName: "작성일", width: 150 },
         {
             field: "actions",
             headerName: "작업",
             width: 120,
-            cellRenderer: BoardDetailModal,
-            cellRendererParams: (params: any) => ({
-                boardId: params.data.boardId,
-                callback: callback
-            }),
+            cellRenderer: ActionCell, // 간단한 버튼만 렌더링
             sortable: false,
             filter: false
         }
-    ], [callback]);
+    ], []);
 
     const defaultColDef = {
         flex: 1,
@@ -60,7 +86,6 @@ const BoardPage: React.FC = () => {
         }
     };
 
-    // 컴포넌트 마운트 시 게시글 데이터 로드
     useEffect(() => {
         fetchBoards();
     }, []);
@@ -74,7 +99,7 @@ const BoardPage: React.FC = () => {
     }
 
     return (
-        <div style={{ width: "100%", height: "100%" }}>
+        <div style={{ width: "100%", height: "90%" }}>
             <AgGridReact
                 rowData={rowData}
                 columnDefs={colDefs}
@@ -82,6 +107,27 @@ const BoardPage: React.FC = () => {
                 pagination={true}
                 paginationPageSize={20}
             />
+
+            <div className="d-flex justify-content-end p-2 mt-2">
+                <Button
+                    onClick={handleCreateClick}
+                    variant="contained"
+                    color="primary"
+                >
+                    게시글 등록
+                </Button>
+            </div>
+
+            {/* 단일 모달 - 필요할 때만 렌더링 */}
+            {modalOpen && (
+                <BoardDetailModal
+                    boardId={selectedBoardId}
+                    callback={callback}
+                    label={selectedBoardId ? '상세 조회' : '게시글 등록'}
+                    open={modalOpen}
+                    onClose={() => setModalOpen(false)}
+                />
+            )}
         </div>
     );
 };

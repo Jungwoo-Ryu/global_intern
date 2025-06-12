@@ -30,8 +30,11 @@ const Layout = () => {
             <div className="main-container">
                 <Sidebar />
 
-                <div className="content">
-                    <Outlet /> {/* 페이지별 컨텐츠가 여기에 렌더링 */}
+                <div className="content-wrapper">
+                    <div className="content">
+                        <Outlet /> {/* 페이지별 컨텐츠가 여기에 렌더링 */}
+                    </div>
+                    {/*<div className="footer"></div>*/}
                 </div>
             </div>
         </div>

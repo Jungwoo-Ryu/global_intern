@@ -1,3 +1,4 @@
+// src/components/member/MemberDetailModal.tsx
 import * as React from 'react';
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
@@ -22,19 +23,22 @@ const style = {
     pb: 3,
 };
 
-
-interface cellRendererParams {
-    memberId: number;
+interface MemberDetailModalProps {
+    memberId?: number | null;
     callback: () => void;
+    label: string;
+    open: boolean;        // 외부에서 제어
+    onClose: () => void;  // 외부에서 제어
 }
 
-export default function MemberDetailModal({ memberId, callback }: cellRendererParams) {
-    console.log(memberId)
-
-    const [open, setOpen] = useState(false);
+export default function MemberDetailModal({
+                                              memberId,
+                                              callback,
+                                              label,
+                                              open,
+                                              onClose
+                                          }: MemberDetailModalProps) {
     const [loading, setLoading] = useState(false);
-
-    // Vue의 ref와 같은 역할을 하는 상태
     const [member, setMember] = useState<Member>({
         id: 0,
         name: '',
@@ -43,15 +47,35 @@ export default function MemberDetailModal({ memberId, callback }: cellRendererPa
         birthDate: '',
     });
 
-    const handleOpen = () => {
-        setOpen(true);
+    // 모달이 열릴 때 데이터 로드
+    useEffect(() => {
+        if (open) {
+            loadMemberData();
+        }
+    }, [open, memberId]);
+
+    const loadMemberData = async () => {
+        if (memberId) {
+            // 기존 회원 조회
+            try {
+                const memberData = await memberService.get(memberId);
+                setMember(memberData);
+            } catch (error) {
+                console.error('회원 데이터 로드 실패:', error);
+                toast.error('회원 데이터를 불러오는데 실패했습니다.');
+            }
+        } else {
+            // 새 회원 등록 모드
+            setMember({
+                id: 0,
+                name: '',
+                email: '',
+                phone: '',
+                birthDate: '',
+            });
+        }
     };
 
-    const handleClose = () => {
-        setOpen(false);
-    };
-
-    // 입력값 변경 핸들러 (Vue의 v-model과 같은 역할)
     const handleInputChange = (field: keyof Member, value: string | number) => {
         setMember(prev => ({
             ...prev,
@@ -59,140 +83,127 @@ export default function MemberDetailModal({ memberId, callback }: cellRendererPa
         }));
     };
 
-    // 저장 핸들러
     const handleSave = async () => {
         try {
             setLoading(true);
-            await memberService.update(memberId, member);
-            // 성공 시에만 실행
-            handleClose(); // 모달 닫기
-            callback(); // 데이터 재조회 + 알림
+
+            if (memberId) {
+                await memberService.update(memberId, member);
+                toast.success('회원 정보가 수정되었습니다.');
+            } else {
+                await memberService.create(member);
+                toast.success('회원이 등록되었습니다.');
+            }
+
+            callback(); // 데이터 재조회
+            onClose(); // 외부에서 전달받은 onClose 호출
 
         } catch (error) {
             console.error('저장 실패:', error);
-            // 실패 시에는 모달을 닫지 않음 (사용자가 수정할 수 있도록)
+            toast.error('저장에 실패했습니다.');
         } finally {
             setLoading(false);
         }
     };
 
-    // 저장 핸들러
     const handleDelete = async () => {
+        if (!memberId) return;
+
         try {
             setLoading(true);
-
             await memberService.delete(memberId);
-            console.log('회원 정보가 저장되었습니다.');
-
-            handleClose(); // 모달 닫기
-
-            // 콜백 함수 호출 (데이터 재조회 + 알림)
-            if (callback) {
-                callback();
-            }
+            toast.success('회원이 삭제되었습니다.');
+            onClose();
+            callback();
         } catch (error) {
-            console.error('저장 실패:', error);
-            alert('저장에 실패했습니다.');
+            console.error('삭제 실패:', error);
+            toast.error('삭제에 실패했습니다.');
         } finally {
             setLoading(false);
         }
     };
 
-
-    // 컴포넌트 마운트 시 회원 데이터 로드
-    useEffect(() => {
-        const fetchMember = async () => {
-            try {
-                const memberData = await memberService.get(memberId);
-                setMember(memberData);
-            } catch (error) {
-                console.error('회원 데이터 로드 실패:', error);
-            }
-        };
-
-        if (memberId) {
-            fetchMember();
-        }
-    }, [memberId, open]);
-
     return (
-        <div>
-            <Button onClick={handleOpen} className="btn btn-info">상세 조회</Button>
-            <Modal
-                open={open}
-                onClose={handleClose}
-                aria-labelledby="parent-modal-title"
-                aria-describedby="parent-modal-description"
-            >
-                <Box sx={{ ...style, width: 800 }}>
-                    <Form>
-                        <Form.Group className="mb-3">
-                            <Form.Label>이름</Form.Label>
-                            <Form.Control
-                                type="text"
-                                value={member.name}
-                                onChange={(e) => handleInputChange('name', e.target.value)}
-                                placeholder="이름을 입력하세요"
-                            />
-                        </Form.Group>
+        <Modal
+            open={open}
+            onClose={onClose}
+            aria-labelledby="member-modal-title"
+            aria-describedby="member-modal-description"
+        >
+            <Box sx={{ ...style, width: 600 }}>
+                <Form>
+                    <h5 className="mb-3">{label}</h5>
 
-                        <Form.Group className="mb-3">
-                            <Form.Label>이메일</Form.Label>
-                            <Form.Control
-                                type="email"
-                                value={member.email}
-                                onChange={(e) => handleInputChange('email', e.target.value)}
-                                placeholder="이메일을 입력하세요"
-                            />
-                        </Form.Group>
+                    <Form.Group className="mb-3">
+                        <Form.Label>이름</Form.Label>
+                        <Form.Control
+                            type="text"
+                            value={member.name}
+                            onChange={(e) => handleInputChange('name', e.target.value)}
+                            placeholder="이름을 입력하세요"
+                        />
+                    </Form.Group>
 
-                        <Form.Group className="mb-3">
-                            <Form.Label>전화번호</Form.Label>
-                            <Form.Control
-                                type="text"
-                                value={member.phone}
-                                onChange={(e) => handleInputChange('phone', e.target.value)}
-                                placeholder="전화번호를 입력하세요"
-                            />
-                        </Form.Group>
+                    <Form.Group className="mb-3">
+                        <Form.Label>이메일</Form.Label>
+                        <Form.Control
+                            type="email"
+                            value={member.email}
+                            onChange={(e) => handleInputChange('email', e.target.value)}
+                            placeholder="이메일을 입력하세요"
+                        />
+                    </Form.Group>
 
-                        <Form.Group className="mb-3">
-                            <Form.Label>생년월일</Form.Label>
-                            <Form.Control
-                                type="date"
-                                value={member.birthDate}
-                                onChange={(e) => handleInputChange('birthDate', e.target.value)}
-                            />
-                        </Form.Group>
-                        <div className="d-flex justify-content-end gap-2">
+                    <Form.Group className="mb-3">
+                        <Form.Label>전화번호</Form.Label>
+                        <Form.Control
+                            type="text"
+                            value={member.phone}
+                            onChange={(e) => handleInputChange('phone', e.target.value)}
+                            placeholder="전화번호를 입력하세요"
+                        />
+                    </Form.Group>
+
+                    <Form.Group className="mb-3">
+                        <Form.Label>생년월일</Form.Label>
+                        <Form.Control
+                            type="date"
+                            value={member.birthDate}
+                            onChange={(e) => handleInputChange('birthDate', e.target.value)}
+                        />
+                    </Form.Group>
+
+                    <div className="d-flex justify-content-end gap-2">
+                        {memberId && (
                             <Button
-                                variant="primary"
+                                variant="contained"
                                 onClick={handleDelete}
                                 disabled={loading}
-                                class={"btn btn-danger"}
+                                color="error"
                             >
                                 삭제
                             </Button>
+                        )}
 
-                            <Button
-                                variant="primary"
-                                onClick={handleSave}
-                                disabled={loading}
-                                class={"btn btn-primary"}
-                            >
-                                저장
-                            </Button>
-                            <Button
-                                variant="secondary"
-                                onClick={handleClose}
-                                class={"btn btn-close-white"}
-                            >
-                                닫기
-                            </Button>
-                        </div>
-                    </Form>
-                </Box>
-            </Modal>
-        </div>
+                        <Button
+                            variant="contained"
+                            onClick={handleSave}
+                            disabled={loading}
+                            color="primary"
+                        >
+                            저장
+                        </Button>
+
+                        <Button
+                            variant="outlined"
+                            onClick={onClose}
+                            color="inherit"
+                        >
+                            닫기
+                        </Button>
+                    </div>
+                </Form>
+            </Box>
+        </Modal>
     );
 }

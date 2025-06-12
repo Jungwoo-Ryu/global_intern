@@ -13,8 +13,13 @@ import org.springframework.stereotype.Service;
 public class AuthService {
     private final MemberRepository memberRepository;
 
-    public boolean login(LoginRequest loginInfo) {
+    public Member login(LoginRequest loginInfo) {
         Member member = memberRepository.findByUsername(loginInfo.getUsername());
-        return member != null && member.getPassword().equals(loginInfo.getPassword());
+        if (member != null && member.getPassword().equals(loginInfo.getPassword())){
+            return member;
+        }
+        else {
+            return null;
+        }
     }
 }

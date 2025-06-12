@@ -20,11 +20,12 @@ public class BoardService {
         return boardRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"));
     }
     public Optional<Board> get(Long id) {
-        return boardRepository.findById(id);
+        return boardRepository.findByIdWithAuthor(id);
     }
 
     @Transactional
     public Long add(Board board) {
+        board.setCreatedAt(LocalDateTime.now());
         Board savedboard = boardRepository.save(board);
 
         if (savedboard.getBoardId() != null && savedboard.getBoardId() > 0) {

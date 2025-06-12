@@ -50,10 +50,10 @@ const authService = {
             password: password,
         }
         const response = await axios.post(`${API_URL}/login`, requestBody);
-        debugger
         const { status } = response;
         if (status === 200){
-            localStorage.setItem('session', 'valid')
+            debugger
+            localStorage.setItem('session', response.data)
             return true;
         } else {
             return false;

@@ -1,3 +1,4 @@
+// src/components/board/BoardDetailModal.tsx
 import * as React from 'react';
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
@@ -6,7 +7,10 @@ import Form from 'react-bootstrap/Form';
 import boardService from '../../services/boardService.ts';
 import { useEffect, useState } from "react";
 import type {Board} from "../../model/board.model.ts";
+import {Member} from "../../model/member.model.ts"
 import { toast } from 'react-toastify';
+import CommentList from "./CommentList.tsx";
+import memberService from "../../services/memberService.ts";
 
 const style = {
     position: 'absolute',
@@ -22,36 +26,72 @@ const style = {
     pb: 3,
 };
 
-interface cellRendererParams {
-    boardId: number;
+interface BoardDetailModalProps {
+    boardId?: number | null;
     callback: () => void;
+    label: string;
+    open: boolean;        // 외부에서 제어
+    onClose: () => void;  // 외부에서 제어
 }
 
-export default function BoardDetailModal({ boardId, callback }: cellRendererParams) {
-    console.log(boardId)
-
-    const [open, setOpen] = useState(false);
+export default function BoardDetailModal({
+                                             boardId,
+                                             callback,
+                                             label,
+                                             open,
+                                             onClose
+                                         }: BoardDetailModalProps) {
     const [loading, setLoading] = useState(false);
-
-    // Vue의 ref와 같은 역할을 하는 상태
     const [board, setBoard] = useState<Board>({
         boardId: null,
         title: '',
         content: '',
         createdAt: '',
-        createdBy: 0,
-        authorName: ''
+        createdBy: new Member(),
+        authorName: '',
+        comments: [],
     });
 
-    const handleOpen = () => {
-        setOpen(true);
+    // 모달이 열릴 때 데이터 로드
+    useEffect(() => {
+        if (open) {
+            loadBoardData();
+        }
+    }, [open, boardId]);
+
+    const loadBoardData = async () => {
+        if (boardId) {
+            // 기존 게시글 조회
+            try {
+                const boardData = await boardService.get(boardId);
+                setBoard(boardData);
+            } catch (error) {
+                console.error('게시글 데이터 로드 실패:', error);
+            }
+        } else {
+            // 새 게시글 작성 모드
+            try {
+                const sessionData = localStorage.getItem('session');
+                if (sessionData) {
+                    const userId: number = JSON.parse(sessionData);
+                    const user = await memberService.get(userId);
+
+                    setBoard({
+                        boardId: null,
+                        title: '',
+                        content: '',
+                        createdAt: '',
+                        createdBy: user,
+                        authorName: user.name,
+                        comments: []
+                    });
+                }
+            } catch (error) {
+                console.error('사용자 정보 로드 실패:', error);
+            }
+        }
     };
 
-    const handleClose = () => {
-        setOpen(false);
-    };
-
-    // 입력값 변경 핸들러 (Vue의 v-model과 같은 역할)
     const handleInputChange = (field: keyof Board, value: string | number) => {
         setBoard(prev => ({
             ...prev,
@@ -59,38 +99,35 @@ export default function BoardDetailModal({ boardId, callback }: cellRendererPara
         }));
     };
 
-    // 저장 핸들러
     const handleSave = async () => {
         try {
             setLoading(true);
-            await boardService.update(boardId, board);
-            // 성공 시에만 실행
-            handleClose(); // 모달 닫기
-            callback(); // 데이터 재조회 + 알림
+
+            // API 요청용 데이터 정리 (순환 참조 방지)
+
+            if (boardId) {
+                await boardService.update(boardId, board);
+            } else {
+                await boardService.create(board);
+            }
+
+            callback(); // 데이터 재조회
+            onClose(); // 외부에서 전달받은 onClose 호출
 
         } catch (error) {
             console.error('저장 실패:', error);
             toast.error('저장에 실패했습니다.');
-            // 실패 시에는 모달을 닫지 않음 (사용자가 수정할 수 있도록)
         } finally {
             setLoading(false);
         }
     };
 
-    // 삭제 핸들러
     const handleDelete = async () => {
         try {
             setLoading(true);
-
             await boardService.delete(boardId);
-            console.log('게시글이 삭제되었습니다.');
-
-            handleClose(); // 모달 닫기
-
-            // 콜백 함수 호출 (데이터 재조회 + 알림)
-            if (callback) {
-                callback();
-            }
+            onClose();
+            callback();
         } catch (error) {
             console.error('삭제 실패:', error);
             toast.error('삭제에 실패했습니다.');
@@ -99,32 +136,25 @@ export default function BoardDetailModal({ boardId, callback }: cellRendererPara
         }
     };
 
-    // 컴포넌트 마운트 시 게시글 데이터 로드
-    useEffect(() => {
-        const fetchBoard = async () => {
-            try {
-                const boardData = await boardService.get(boardId);
-                setBoard(boardData);
-            } catch (error) {
-                console.error('게시글 데이터 로드 실패:', error);
-            }
-        };
-
-        if (boardId) {
-            fetchBoard();
-        }
-    }, [boardId, open]);
-
     return (
-        <div>
-            <Button onClick={handleOpen} className="btn btn-info">상세 조회</Button>
-            <Modal
-                open={open}
-                onClose={handleClose}
-                aria-labelledby="parent-modal-title"
-                aria-describedby="parent-modal-description"
-            >
-                <Box sx={{ ...style, width: 800 }}>
+        <Modal
+            open={open}
+            onClose={onClose}
+            aria-labelledby="board-modal-title"
+            aria-describedby="board-modal-description"
+        >
+            <Box sx={{
+                ...style,
+                width: 800,
+                display: 'flex',
+                flexDirection: 'column',
+                maxHeight: '90vh'
+            }}>
+                <Box sx={{
+                    flex: 1,
+                    overflowY: 'auto',
+                    pr: 1
+                }}>
                     <Form>
                         <Form.Group className="mb-3">
                             <Form.Label>제목</Form.Label>
@@ -151,7 +181,7 @@ export default function BoardDetailModal({ boardId, callback }: cellRendererPara
                             <Form.Label>작성자</Form.Label>
                             <Form.Control
                                 type="text"
-                                value={board.authorName || ''}
+                                value={board.createdBy?.name || ''}
                                 readOnly
                                 placeholder="작성자"
                             />
@@ -167,35 +197,51 @@ export default function BoardDetailModal({ boardId, callback }: cellRendererPara
                             />
                         </Form.Group>
 
-                        <div className="d-flex justify-content-end gap-2">
-                            <Button
-                                variant="primary"
-                                onClick={handleDelete}
-                                disabled={loading}
-                                className="btn btn-danger"
-                            >
-                                삭제
-                            </Button>
-
-                            <Button
-                                variant="primary"
-                                onClick={handleSave}
-                                disabled={loading}
-                                className="btn btn-primary"
-                            >
-                                저장
-                            </Button>
-                            <Button
-                                variant="secondary"
-                                onClick={handleClose}
-                                className="btn btn-secondary"
-                            >
-                                닫기
-                            </Button>
-                        </div>
+                        {boardId && board.comments && (
+                            <CommentList
+                                comments={board.comments}
+                                title="댓글"
+                            />
+                        )}
                     </Form>
                 </Box>
-            </Modal>
-        </div>
+
+                <Box sx={{
+                    pt: 2,
+                    borderTop: '1px solid #dee2e6',
+                    display: 'flex',
+                    justifyContent: 'flex-end',
+                    gap: 1
+                }}>
+                    {boardId && (
+                        <Button
+                            variant="contained"
+                            onClick={handleDelete}
+                            disabled={loading}
+                            color="error"
+                        >
+                            삭제
+                        </Button>
+                    )}
+
+                    <Button
+                        variant="contained"
+                        onClick={handleSave}
+                        disabled={loading}
+                        color="primary"
+                    >
+                        저장
+                    </Button>
+
+                    <Button
+                        variant="outlined"
+                        onClick={onClose}
+                        color="inherit"
+                    >
+                        닫기
+                    </Button>
+                </Box>
+            </Box>
+        </Modal>
     );
 }

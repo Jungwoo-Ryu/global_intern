@@ -1,11 +1,14 @@
 // src/models/board.model.ts
+import type {Member} from "./member.model.ts";
+import type {Comment} from "./comment.model.ts";
+
 export interface IBoard {
     boardId?: number | null;
     title: string;
     content: string;
     createdAt: string;
-    createdBy: number;
-    authorName?: string;
+    createdBy: Member;
+    comments?: any[]; // 필요시 Comment 배열
 }
 
 export class Board implements IBoard {
@@ -13,38 +16,27 @@ export class Board implements IBoard {
     title: string;
     content: string;
     createdAt: string;
-    createdBy: number;
-    authorName?: string;
+    createdBy: Member;
+    comments?: Comment[];
 
     constructor(
         boardId: number | null = null,
         title: string = '',
         content: string = '',
         createdAt: string = '',
-        createdBy: number = 0,
-        authorName: string = ''
+        createdBy: Member = new Member(),
+        comments: Comment[] = []
     ) {
-        this.boardId = boardId; // null이 아닌 매개변수 값 할당
+        this.boardId = boardId;
         this.title = title;
         this.content = content;
         this.createdAt = createdAt;
         this.createdBy = createdBy;
-        this.authorName = authorName;
+        this.comments = comments;
     }
 
-    // 정적 팩토리 메서드
-    static createEmpty(): Board {
-        return new Board();
-    }
-
-    static fromData(data: Partial<IBoard>): Board {
-        return new Board(
-            data.boardId || null,
-            data.title || '',
-            data.content || '',
-            data.createdAt || '',
-            data.createdBy || 0,
-            data.authorName || ''
-        );
+    // 편의 메서드 - 작성자명만 필요한 경우
+    get authorName(): string {
+        return this.createdBy.name;
     }
 }
