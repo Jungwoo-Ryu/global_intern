@@ -11,7 +11,8 @@ import {Member} from "../../model/member.model.ts"
 import { toast } from 'react-toastify';
 import CommentList from "./CommentList.tsx";
 import memberService from "../../services/memberService.ts";
-
+import commentService from "../../services/commentService.ts";
+import {Comment} from "../../model/comment.model.ts"
 const style = {
     position: 'absolute',
     top: '50%',
@@ -56,6 +57,7 @@ export default function BoardDetailModal({
     useEffect(() => {
         if (open) {
             loadBoardData();
+            getUserData();
         }
     }, [open, boardId]);
 
@@ -71,11 +73,6 @@ export default function BoardDetailModal({
         } else {
             // 새 게시글 작성 모드
             try {
-                const sessionData = localStorage.getItem('session');
-                if (sessionData) {
-                    const userId: number = JSON.parse(sessionData);
-                    const user = await memberService.get(userId);
-
                     setBoard({
                         boardId: null,
                         title: '',
@@ -85,7 +82,7 @@ export default function BoardDetailModal({
                         authorName: user.name,
                         comments: []
                     });
-                }
+
             } catch (error) {
                 console.error('사용자 정보 로드 실패:', error);
             }
@@ -98,7 +95,7 @@ export default function BoardDetailModal({
             [field]: value
         }));
     };
-
+    const currentUser = memberService
     const handleSave = async () => {
         try {
             setLoading(true);
@@ -107,8 +104,10 @@ export default function BoardDetailModal({
 
             if (boardId) {
                 await boardService.update(boardId, board);
+                toast.success('게시글 수정에 성공하였습니다.');
             } else {
                 await boardService.create(board);
+                toast.info('게시글 등록에 성공하였습니다.');
             }
 
             callback(); // 데이터 재조회
@@ -121,6 +120,30 @@ export default function BoardDetailModal({
             setLoading(false);
         }
     };
+    const [comment, setComment] = useState('');
+    const [user, setUser] = useState(new Member());
+    const addComment = async () => {
+        try {
+            const postComment = new Comment(null,           // id
+                boardId,        // boardId TODO. 데이터 파싱
+                comment,        // content
+                null,
+                user.id,        // createdBy
+                user.name
+            );
+            await commentService.create(postComment)
+        } catch {
+            toast.error("댓글 등록 중 오류가 발생했습니다.")
+        }
+
+    }
+
+    const getUserData: void = async () => {
+        const sessionData = localStorage.getItem('session');
+        const userId: number = JSON.parse(sessionData);
+        const data = await memberService.get(userId);
+        setUser(data);
+    }
 
     const handleDelete = async () => {
         try {
@@ -196,12 +219,25 @@ export default function BoardDetailModal({
                                 placeholder="작성일"
                             />
                         </Form.Group>
-
                         {boardId && board.comments && (
                             <CommentList
                                 comments={board.comments}
                                 title="댓글"
-                            />
+                            >
+                                <div style={{ marginTop: '10px', padding: '10px', backgroundColor: '#fff' }}>
+                                    <h6>댓글 작성</h6>
+                                    <textarea
+                                        placeholder="댓글을 입력하세요..."
+                                        value={comment}
+                                        onChange={(e) => setComment(e.target.value)} // ✅ 올바른 핸들러 사용
+                                        style={{ width: '100%', minHeight: '60px' }}
+                                    />
+                                    <button className="btn btn-primary btn-sm mt-2"
+                                            onClick={addComment}>
+                                        댓글 등록
+                                    </button>
+                                </div>
+                            </CommentList>
                         )}
                     </Form>
                 </Box>

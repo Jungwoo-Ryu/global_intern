@@ -1,5 +1,5 @@
 // src/services/memberService.ts
-import axios from "axios";
+import axios, {type AxiosResponse} from "axios";
 import {Member} from "../model/member.model.ts";
 
 const API_URL = "/api/member"; // Vite 프록시 사용 시
@@ -7,10 +7,8 @@ const API_URL = "/api/member"; // Vite 프록시 사용 시
 // Member Service 객체
 const memberService = {
     // 회원 목록 조회 (페이징)
-    list: async (page: number = 0, size: number = 10): Promise<Member[]> => {
-        const response = await axios.get<Member>(`${API_URL}/list`, {
-            params: { page, size }
-        });
+    list: async (): Promise<Member[]> => {
+        const response: AxiosResponse<any, Member[]> = await axios.get<Member>(`${API_URL}/list`);
 
         return response.data;
     },

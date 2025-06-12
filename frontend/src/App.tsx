@@ -1,5 +1,7 @@
 // src/App.tsx
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css'; // CSS 필수!
 import Layout from './components/layout/Layout.tsx';
 import Login from './pages/Login.tsx';
 import Member from './pages/Member.tsx';
@@ -10,7 +12,7 @@ import Board from "./pages/Board.tsx";
 function App() {
     return (
         <BrowserRouter>
-            <Routes> {/* ✅ Routes로 감싸기 */}
+            <Routes>
                 <Route path="/login" element={<Login />} />
                 <Route
                     path="/"
@@ -25,9 +27,22 @@ function App() {
                     <Route path="board" element={<Board />} />
                 </Route>
             </Routes>
+
+            {/* ToastContainer 추가 - 앱 전체에서 사용 */}
+            <ToastContainer
+                position="top-right"
+                autoClose={900}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                theme="light"
+            />
         </BrowserRouter>
     );
 }
-
 
 export default App;

@@ -25,7 +25,7 @@ const Login = () => {
     };
 
     return (
-        <div className="login-container flex flex-row bg-black">
+        <div className="login-container flex flex-row mt-lg-5">
             <Container className="container-lg">
                 <div className="row justify-content-center">
                     <div className="col-12">

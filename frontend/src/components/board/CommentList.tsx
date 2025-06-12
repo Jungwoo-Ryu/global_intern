@@ -6,14 +6,17 @@ import CommentItem from "./CommentItem.tsx";
 interface CommentListProps {
     comments: Comment[];
     title?: string;
+    children?: React.ReactNode;
 }
 
-const CommentList: React.FC<CommentListProps> = ({ comments, title = "댓글" }) => {
+const CommentList: React.FC<CommentListProps> = ({ comments, title = "댓글", children }) => {
     return (
         <div className="mb-3">
             <label className="form-label">
                 {title} ({comments.length}개)
             </label>
+
+            {children}
             <div style={{
                 border: '1px solid #dee2e6',
                 borderRadius: '4px',

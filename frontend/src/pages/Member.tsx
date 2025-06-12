@@ -26,11 +26,9 @@ const Member: React.FC = () => {
     // 모달 상태 관리
     const [selectedMemberId, setSelectedMemberId] = useState<number | null>(null);
     const [modalOpen, setModalOpen] = useState(false);
-
-    const callback = () => {
-        toast.success('저장되었습니다.');
-        fetchMembers();
+    const callback = async () => {
         setModalOpen(false); // 모달 닫기
+        await fetchMembers();
     };
 
     // 상세 조회 버튼 클릭 핸들러
@@ -117,13 +115,13 @@ const Member: React.FC = () => {
             />
 
             <div className="d-flex justify-content-end p-2 mt-2">
-                <Button
-                    onClick={handleCreateClick}
-                    variant="contained"
-                    color="primary"
-                >
-                    회원 등록
-                </Button>
+                {/*<Button*/}
+                {/*    onClick={handleCreateClick}*/}
+                {/*    variant="contained"*/}
+                {/*    color="primary"*/}
+                {/*>*/}
+                {/*    회원 등록*/}
+                {/*</Button>*/}
             </div>
 
             {/* 단일 모달 - 필요할 때만 렌더링 */}

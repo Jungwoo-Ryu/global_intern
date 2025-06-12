@@ -19,10 +19,8 @@ const BoardPage: React.FC = () => {
     const [modalOpen, setModalOpen] = useState(false);
 
     const callback = () => {
-        debugger
-        alert('저장되었습니다.');
-        fetchBoards();
         setModalOpen(false); // 모달 닫기
+        fetchBoards();
     };
 
     // 상세 조회 버튼 클릭 핸들러
