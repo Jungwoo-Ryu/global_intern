@@ -3,9 +3,13 @@ import {useNavigate} from "react-router-dom"
 import { Form, Button, Alert, Card, Container } from "react-bootstrap";
 import authService from "../services/authService.ts";
 import 'bootstrap/dist/css/bootstrap.min.css'; // 여기에 추가
+import { useDispatch } from 'react-redux'; // 추가
+import { loginSuccess } from "../actions/authActions"; // 추가
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 const Login = () => {
     const navigate = useNavigate();
+    const dispatch = useDispatch(); // 추가
     const [inputUsername, setInputUsername] = useState("user01");
     const [inputPassword, setInputPassword] = useState("pass01");
     const [show, setShow] = useState(false);
@@ -13,16 +17,32 @@ const Login = () => {
 
     const service = authService;
 
+
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
         setLoading(true);
         setShow(false);
-        const result = await service.login(inputUsername, inputPassword);
-        setLoading(false);
-        if(result) {
-            navigate('/member', { replace: true }); // 뒤로가기 시 로그인 페이지로 돌아가지 않음
+
+        try {
+            const result = await service.login(inputUsername, inputPassword);
+
+            if (result && result.data) {
+                // 서버에서 받은 Member 데이터에서 ID만 추출하여 Redux에 저장
+                const memberId = result.data.id; // 또는 result.data.memberId
+                dispatch(loginSuccess(memberId));
+
+                navigate('/', { replace: true });
+            } else {
+                setShow(true); // 로그인 실패 시 에러 표시
+            }
+        } catch (error) {
+            console.error('로그인 오류:', error);
+            setShow(true); // 에러 발생 시 알림 표시
+        } finally {
+            setLoading(false);
         }
     };
+
 
     return (
         <div className="login-container flex flex-row mt-lg-5">

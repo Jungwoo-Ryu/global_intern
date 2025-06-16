@@ -122,7 +122,9 @@ export default function BoardDetailModal({
     };
     const [comment, setComment] = useState('');
     const [user, setUser] = useState(new Member());
-    const addComment = async () => {
+    const addComment = async (event) => {
+        event.preventDefault();
+        event.stopPropagation();
         try {
             const postComment = new Comment(null,           // id
                 boardId,        // boardId TODO. 데이터 파싱
@@ -132,23 +134,36 @@ export default function BoardDetailModal({
                 user.name
             );
             await commentService.create(postComment)
+            toast.success("댓글 등록에 성공했습니다.")
+            await loadBoardData()
+            setComment('');
+
         } catch {
             toast.error("댓글 등록 중 오류가 발생했습니다.")
         }
 
     }
 
-    const getUserData: void = async () => {
-        const sessionData = localStorage.getItem('session');
-        const userId: number = JSON.parse(sessionData);
-        const data = await memberService.get(userId);
-        setUser(data);
+    const getUserData: () => Promise<void> = async () => {
+        const sessionData = localStorage.getItem('persist:root');
+        if (sessionData) {
+            const persistData = JSON.parse(sessionData);
+            const authData = JSON.parse(persistData.auth);
+
+            // 3단계: userId 추출
+            const userId: number = authData.userId;
+
+            const data = await memberService.get(userId);
+            setUser(data);
+        }
+
     }
 
     const handleDelete = async () => {
         try {
             setLoading(true);
             await boardService.delete(boardId);
+            toast.success("게시글이 삭제 되었습니다.")
             onClose();
             callback();
         } catch (error) {

@@ -1,20 +1,14 @@
 // src/components/ProtectedRoute.tsx
-import { Navigate, useLocation } from 'react-router-dom';
+import React from 'react';
+import { useSelector } from 'react-redux';
+import { Navigate } from 'react-router-dom';
+import type {RootState} from '../store';
 
-interface ProtectedRouteProps {
-    children: React.ReactNode;
-}
-
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-    const location = useLocation();
-    const session = localStorage.getItem('session');
-
-    // session이 없거나 memberType 아니면 로그인 페이지로 리다이렉트
-    if (!session) {
-        return <Navigate to="/login" state={{ from: location }} replace />;
-    }
-
-    return <>{children}</>;
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+    const { isAuthenticated, userId } = useSelector((state: RootState) => state.auth);
+    console.log('ProtectedRoute 실행:', { isAuthenticated, userId });
+    console.log('localStorage persist:root:', localStorage.getItem('persist:root'));
+    return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
 };
 
 export default ProtectedRoute;

@@ -1,4 +1,4 @@
-package com.fasoo.global.vo;
+package com.fasoo.global.dto;
 
 import lombok.Data;
 

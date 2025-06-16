@@ -2,7 +2,7 @@ package com.fasoo.global.resource;
 
 import com.fasoo.global.domain.Member;
 import com.fasoo.global.service.AuthService;
-import com.fasoo.global.vo.LoginRequest;
+import com.fasoo.global.dto.LoginRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,7 +19,7 @@ public class AuthResource {
     @PostMapping("/auth/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         Member member = authService.login(loginRequest);
-        return member != null ? ResponseEntity.ok(member.getId()) : ResponseEntity.badRequest().build();
+        return member != null ? ResponseEntity.ok(member) : ResponseEntity.badRequest().build();
     }
 
 

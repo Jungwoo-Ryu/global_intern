@@ -44,19 +44,23 @@ const userManager = {
 // 인증 서비스
 const authService = {
     // 로그인
-    login: async (username: string, password: string) => {
-        const requestBody = {
-            username: username,
-            password: password,
-        }
-        const response = await axios.post(`${API_URL}/login`, requestBody);
-        const { status } = response;
-        if (status === 200){
-            debugger
-            localStorage.setItem('session', response.data)
-            return true;
-        } else {
-            return false;
+    async login(username: string, password: string) {
+        try {
+            const response = await axios.post(`${API_URL}/login`, {
+                username,
+                password
+            });
+
+            // 서버에서 Member 객체를 반환한다고 가정
+            return {
+                success: true,
+                data: response.data // Member 객체가 포함된 응답
+            };
+        } catch (error) {
+            return {
+                success: false,
+                data: null
+            };
         }
     },
 
