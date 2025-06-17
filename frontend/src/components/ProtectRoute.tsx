@@ -7,7 +7,6 @@ import type {RootState} from '../store';
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     const { isAuthenticated, userId } = useSelector((state: RootState) => state.auth);
     console.log('ProtectedRoute 실행:', { isAuthenticated, userId });
-    console.log('localStorage persist:root:', localStorage.getItem('persist:root'));
     return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
 };
 

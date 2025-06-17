@@ -45,4 +45,9 @@ public class BoardService {
     public void delete(Long id) {
         boardRepository.deleteById(id);
     }
+
+    @Transactional
+    public void deleteAllByIdInBatch(List<Long> ids) {
+        boardRepository.deleteAllByIdInBatch(ids);
+    }
 }

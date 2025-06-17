@@ -13,6 +13,8 @@ import CommentList from "./CommentList.tsx";
 import memberService from "../../services/memberService.ts";
 import commentService from "../../services/commentService.ts";
 import {Comment} from "../../model/comment.model.ts"
+import {useDispatch, useSelector} from "react-redux";
+import type {RootState} from "../../store.ts";
 const style = {
     position: 'absolute',
     top: '50%',
@@ -52,6 +54,7 @@ export default function BoardDetailModal({
         authorName: '',
         comments: [],
     });
+    const { userId } = useSelector((state: RootState) => state.auth);
 
     // 모달이 열릴 때 데이터 로드
     useEffect(() => {
@@ -95,18 +98,22 @@ export default function BoardDetailModal({
             [field]: value
         }));
     };
-    const currentUser = memberService
     const handleSave = async () => {
         try {
             setLoading(true);
 
             // API 요청용 데이터 정리 (순환 참조 방지)
+            const updatedBoard:Board = {
+                ...board,
+                createdBy: user,
+                authorName: user.name
+            };
 
             if (boardId) {
-                await boardService.update(boardId, board);
+                await boardService.update(boardId, updatedBoard);
                 toast.success('게시글 수정에 성공하였습니다.');
             } else {
-                await boardService.create(board);
+                await boardService.create(updatedBoard);
                 toast.info('게시글 등록에 성공하였습니다.');
             }
 
@@ -145,14 +152,7 @@ export default function BoardDetailModal({
     }
 
     const getUserData: () => Promise<void> = async () => {
-        const sessionData = localStorage.getItem('persist:root');
-        if (sessionData) {
-            const persistData = JSON.parse(sessionData);
-            const authData = JSON.parse(persistData.auth);
-
-            // 3단계: userId 추출
-            const userId: number = authData.userId;
-
+        if (userId) {
             const data = await memberService.get(userId);
             setUser(data);
         }
@@ -238,13 +238,14 @@ export default function BoardDetailModal({
                             <CommentList
                                 comments={board.comments}
                                 title="댓글"
+                                onCommentDeleted={loadBoardData} // 콜백 함수 전달
                             >
                                 <div style={{ marginTop: '10px', padding: '10px', backgroundColor: '#fff' }}>
                                     <h6>댓글 작성</h6>
                                     <textarea
                                         placeholder="댓글을 입력하세요..."
                                         value={comment}
-                                        onChange={(e) => setComment(e.target.value)} // ✅ 올바른 핸들러 사용
+                                        onChange={(e) => setComment(e.target.value)}
                                         style={{ width: '100%', minHeight: '60px' }}
                                     />
                                     <button className="btn btn-primary btn-sm mt-2"

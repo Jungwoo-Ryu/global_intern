@@ -1,12 +1,15 @@
 // src/components/comment/CommentItem.tsx
 import React from 'react';
 import type { Comment } from "../../model/comment.model.ts";
+import commentService from '../../services/commentService.ts';
+import {toast} from "react-toastify";
 
 interface CommentItemProps {
     comment: Comment;
+    onCommentDeleted?: () => void; // 콜백 함수 추가
 }
 
-const CommentItem: React.FC<CommentItemProps> = ({ comment }) => {
+const CommentItem: React.FC<CommentItemProps> = ({ comment, onCommentDeleted }) => {
     const formatDate = (dateString: string) => {
         try {
             return new Date(dateString).toLocaleString('ko-KR', {
@@ -18,6 +21,23 @@ const CommentItem: React.FC<CommentItemProps> = ({ comment }) => {
             });
         } catch {
             return dateString;
+        }
+    };
+
+    const deleteComment = async (event) => {
+        try {
+            event.preventDefault();
+
+            await commentService.delete(comment.id);
+            toast.success("해당 댓글이 삭제되었습니다.");
+
+            // 삭제 후 콜백 함수 호출
+            if (onCommentDeleted) {
+                onCommentDeleted();
+            }
+        } catch (error) {
+            console.error('댓글 삭제 실패:', error);
+            toast.error("댓글 삭제에 실패했습니다.");
         }
     };
 
@@ -56,6 +76,15 @@ const CommentItem: React.FC<CommentItemProps> = ({ comment }) => {
                 color: '#212529'
             }}>
                 {comment.content}
+            </div>
+            <div className="d-flex justify-content-end">
+                <button
+                    className="btn btn-danger"
+                    style={{width: 'fit-content'}}
+                    onClick={deleteComment}
+                >
+                    삭제
+                </button>
             </div>
         </div>
     );

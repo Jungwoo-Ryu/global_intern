@@ -40,6 +40,12 @@ const boardService = {
     delete: async (boardId: number): Promise<void> => {
         await axios.delete(`${API_URL}/${boardId}`);
     },
+    deleteAll: async (selectedIds: number[]) : Promise<void> => {
+        await axios.delete(`${API_URL}/batch`, {
+            data: selectedIds
+        });
+
+    }
 };
 
 // 기본 export

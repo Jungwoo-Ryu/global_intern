@@ -1,12 +1,13 @@
 // src/pages/Board.tsx
-import React, {useEffect, useMemo, useState} from "react";
+import React, {useEffect, useMemo, useState, useCallback} from "react";
 import { AllCommunityModule, ModuleRegistry } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
 import boardService from "../services/boardService";
 import BoardDetailModal from "../components/board/BoardDetailModal.tsx";
 import {Board} from "../model/board.model.ts";
 import Button from '@mui/material/Button';
-
+import { Box } from '@mui/material';
+import {toast} from "react-toastify";
 ModuleRegistry.registerModules([AllCommunityModule]);
 
 const BoardPage: React.FC = () => {
@@ -18,25 +19,41 @@ const BoardPage: React.FC = () => {
     const [selectedBoardId, setSelectedBoardId] = useState<number | null>(null);
     const [modalOpen, setModalOpen] = useState(false);
 
-    const callback = () => {
-        setModalOpen(false); // 모달 닫기
+    // 셀렉트박스 상태 - 배열로 변경
+    const [selectedValues, setSelectedValues] = useState<number[]>([]);
+
+    const callback = useCallback(() => {
+        setModalOpen(false);
         fetchBoards();
-    };
+    }, []);
 
     // 상세 조회 버튼 클릭 핸들러
-    const handleDetailClick = (boardId: number) => {
+    const handleDetailClick = useCallback((boardId: number) => {
         setSelectedBoardId(boardId);
         setModalOpen(true);
-    };
+    }, []);
 
     // 게시글 등록 버튼 클릭 핸들러
-    const handleCreateClick = () => {
+    const handleCreateClick = useCallback(() => {
         setSelectedBoardId(null);
         setModalOpen(true);
-    };
+    }, []);
+    
+    // AG Grid 행 선택 이벤트 리스너
+    const onSelectionChanged = useCallback(async (event: any) => {
+        const selectedRows = event.api.getSelectedRows();
+
+        const selectedBoardIds = selectedRows.map(row => row.boardId);
+        // selectedValues 상태 업데이트
+        setSelectedValues(selectedBoardIds);
+    }, []);
+
+    useEffect(() => {
+        console.log('선택된 게시글 (상태 업데이트 후):', selectedValues);
+    }, [selectedValues]);
 
     // 간단한 버튼 컴포넌트 (ag-grid 내부용)
-    const ActionCell = (props: any) => (
+    const ActionCell = useCallback((props: any) => (
         <Button
             onClick={() => handleDetailClick(props.data.boardId)}
             variant="outlined"
@@ -45,10 +62,16 @@ const BoardPage: React.FC = () => {
         >
             상세 조회
         </Button>
-    );
+    ), [handleDetailClick]);
 
     const colDefs = useMemo(() => [
-        { field: "boardId", headerName: "ID", width: 80 },
+        {
+            field: "boardId",
+            headerName: "ID",
+            width: 80,
+            checkboxSelection: true,
+            headerCheckboxSelection: true
+        },
         { field: "title", headerName: "제목", width: 200 },
         { field: "content", headerName: "내용" },
         { field: "createdBy.name", headerName: "작성자", width: 120 },
@@ -57,18 +80,18 @@ const BoardPage: React.FC = () => {
             field: "actions",
             headerName: "작업",
             width: 120,
-            cellRenderer: ActionCell, // 간단한 버튼만 렌더링
+            cellRenderer: ActionCell,
             sortable: false,
             filter: false
         }
-    ], []);
+    ], [ActionCell]);
 
-    const defaultColDef = {
+    const defaultColDef = useMemo(() => ({
         flex: 1,
         sortable: true,
         filter: true,
         resizable: true,
-    };
+    }), []);
 
     const fetchBoards = async () => {
         try {
@@ -83,7 +106,11 @@ const BoardPage: React.FC = () => {
             setLoading(false);
         }
     };
-
+    const deleteAll: () => Promise<void> = async () => {
+        await boardService.deleteAll(selectedValues)
+        toast.success("선택된 게시글이 삭제되었습니다.")
+        fetchBoards();
+    }
     useEffect(() => {
         fetchBoards();
     }, []);
@@ -98,25 +125,20 @@ const BoardPage: React.FC = () => {
 
     return (
         <div style={{ width: "100%", height: "90%" }}>
+            {/* AG Grid */}
             <AgGridReact
                 rowData={rowData}
                 columnDefs={colDefs}
                 defaultColDef={defaultColDef}
                 pagination={true}
                 paginationPageSize={20}
+                rowSelection="multiple"
+                onSelectionChanged={onSelectionChanged}
+                animateRows={true}
+                suppressRowClickSelection={true}
             />
 
-            <div className="d-flex justify-content-end p-2 mt-2">
-                <Button
-                    onClick={handleCreateClick}
-                    variant="contained"
-                    color="primary"
-                >
-                    게시글 등록
-                </Button>
-            </div>
-
-            {/* 단일 모달 - 필요할 때만 렌더링 */}
+            {/* 모달 */}
             {modalOpen && (
                 <BoardDetailModal
                     boardId={selectedBoardId}
@@ -126,7 +148,38 @@ const BoardPage: React.FC = () => {
                     onClose={() => setModalOpen(false)}
                 />
             )}
+
+            {/* 셀렉트박스와 선택된 값 표시 */}
+            <Box display="flex" gap={2} mb={2} alignItems="center" flexWrap="wrap">
+
+                {/* 선택된 boardId 개수 표시 */}
+                {selectedValues.length > 0 && (
+                    <Box mb={1}>
+                    <span style={{ fontSize: '14px', color: '#666' }}>
+                        총 {selectedValues.length}개의 게시글이 선택되었습니다.
+                    </span>
+                    </Box>
+                )}
+                <Box ml="auto">
+                    <button
+                        onClick={deleteAll}
+                        className="btn btn-danger me-1 mt-1"
+                        disabled={!selectedValues.length}
+                    >
+                        선택 삭제
+                    </button>
+                    <button
+                        onClick={handleCreateClick}
+                        className="btn btn-primary me-1 mt-1"
+                    >
+                        게시글 등록
+                    </button>
+                </Box>
+            </Box>
+
+
         </div>
+
     );
 };
 

@@ -94,4 +94,14 @@ public class BoardResource {
         boardSerivce.delete(id);
         return ResponseEntity.ok().build();
     }
+    /**
+     * Member 삭제
+     * @param ids
+     * */
+    @DeleteMapping("/board/batch")
+    public ResponseEntity<?> deleteBoardsBatch(@RequestBody List<Long> ids){
+        boardSerivce.deleteAllByIdInBatch(ids);
+        return ResponseEntity.ok().build();
+
+    }
 }

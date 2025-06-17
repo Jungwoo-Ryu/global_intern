@@ -7,9 +7,15 @@ interface CommentListProps {
     comments: Comment[];
     title?: string;
     children?: React.ReactNode;
+    onCommentDeleted?: () => void; // 콜백 함수 추가
 }
 
-const CommentList: React.FC<CommentListProps> = ({ comments, title = "댓글", children }) => {
+const CommentList: React.FC<CommentListProps> = ({
+                                                     comments,
+                                                     title = "댓글",
+                                                     children,
+                                                     onCommentDeleted
+                                                 }) => {
     return (
         <div className="mb-3">
             <label className="form-label">
@@ -30,6 +36,7 @@ const CommentList: React.FC<CommentListProps> = ({ comments, title = "댓글", c
                         <CommentItem
                             key={comment.id || index}
                             comment={comment}
+                            onCommentDeleted={onCommentDeleted} // 콜백 전달
                         />
                     ))
                 ) : (
