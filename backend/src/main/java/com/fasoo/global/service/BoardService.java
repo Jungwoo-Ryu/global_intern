@@ -19,35 +19,39 @@ public class BoardService {
     public List<Board> list(){
         return boardRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"));
     }
-    public Optional<Board> get(Long id) {
+    public Board get(Long id) {
         return boardRepository.findByIdWithAuthor(id);
     }
 
     @Transactional
-    public Long add(Board board) {
+    public Board add(Board board) {
         board.setCreatedAt(LocalDateTime.now());
-        Board savedboard = boardRepository.save(board);
+        return boardRepository.save(board);
+    }
 
-        if (savedboard.getBoardId() != null && savedboard.getBoardId() > 0) {
-            return savedboard.getBoardId(); // 성공 시 ID 반환
-        } else {
-            throw new RuntimeException("게시글 등록에 실패했습니다");
+    @Transactional
+    public Board update(Board board) {
+        board.setCreatedAt(LocalDateTime.now());
+        return boardRepository.save(board);
+    }
+
+    @Transactional
+    public int delete(Long id) {
+        try {
+            boardRepository.deleteById(id);
+        } catch (Exception e) {
+            return 0;
         }
+        return 1;
     }
 
     @Transactional
-    public void update(Board board) {
-        board.setCreatedAt(LocalDateTime.now());
-        boardRepository.save(board);
-    }
-
-    @Transactional
-    public void delete(Long id) {
-        boardRepository.deleteById(id);
-    }
-
-    @Transactional
-    public void deleteAllByIdInBatch(List<Long> ids) {
-        boardRepository.deleteAllByIdInBatch(ids);
+    public int deleteAllByIdInBatch(List<Long> ids) {
+        try {
+            boardRepository.deleteAllByIdInBatch(ids);
+        } catch (Exception e) {
+            return 0;
+        }
+        return 1;
     }
 }

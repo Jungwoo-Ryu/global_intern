@@ -4,73 +4,51 @@ import com.fasoo.global.domain.Board;
 import com.fasoo.global.service.BoardService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
 @Slf4j
 public class BoardResource {
-    private final BoardService boardSerivce;
+    private final BoardService boardService;
     /**
      * Member 목록 조회
      * */
-    @GetMapping("/board/list")
-    public ResponseEntity<List<Board>> getMemberList(){
-        try {
-            List<Board> memberList = boardSerivce.list();
-
-            if (memberList.isEmpty()) {
-                return ResponseEntity.noContent().build(); // 204 No Content
-            }
-
-            return ResponseEntity.ok(memberList); // 200 OK
-
-        } catch (Exception e) {
-            // 로깅 추가
-            log.error("회원 목록 조회 중 오류 발생", e);
-            return ResponseEntity.internalServerError().build(); // 500 Internal
-        }
+    @GetMapping("/boards")
+    public ResponseEntity<List<Board>> getBoards(){
+        List<Board> memberList = boardService.list();
+        return new ResponseEntity<>(memberList,HttpStatus.OK); // 200 OK
     }
 
     /**
      * Member 상세 조회
      * @param id: String
      */
-    @GetMapping("/board/{id}")
-    public ResponseEntity<Board> getMember(@PathVariable Long id) {
-        try {
-            Optional<Board> BoardOptional  = boardSerivce.get(id);
-
-            return BoardOptional
-                    .map(board -> ResponseEntity.ok(board))
-                    .orElse(ResponseEntity.notFound().build());
-
-        } catch (IllegalArgumentException e) {
-            log.warn("잘못된 회원 ID: {}", id, e);
-            return ResponseEntity.badRequest().build(); // 400 Bad Request
-
-        } catch (Exception e) {
-            log.error("회원 상세 조회 중 오류 발생, ID: {}", id, e);
-            return ResponseEntity.internalServerError().build(); // 500 Internal Server Error
+    @GetMapping("/boards/{id}")
+    public ResponseEntity<Board> getBoard(@PathVariable Long id) {
+        Board board = boardService.get(id);
+        if (board == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
+        return new ResponseEntity<>(board, HttpStatus.OK);
     }
 
     /**
      * board 등록
      * @param board
      * */
-    @PostMapping("/board")
-    public ResponseEntity<?> addMember(@RequestBody Board board){
-        Long id = boardSerivce.add(board);
-        if  (id == null) {
-            return ResponseEntity.badRequest().build();
+    @PostMapping("/boards")
+    public ResponseEntity<?> addBoard(@RequestBody Board board){
+        Board createdBoard = boardService.add(board);
+        if (createdBoard == null) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        return ResponseEntity.ok().build();
+        return new ResponseEntity<>(createdBoard, HttpStatus.CREATED);
     }
 
     /**
@@ -78,30 +56,35 @@ public class BoardResource {
      * @param id
      * @param board
      * */
-    @PutMapping("/board/{id}")
+    @PutMapping("/boards/{id}")
     public ResponseEntity<?> updateBoard(@PathVariable String id, @RequestBody Board board){
 
-        boardSerivce.update(board);
-        return ResponseEntity.ok().build();
+        Board updatedBoard = boardService.update(board);
+        return new ResponseEntity<>(updatedBoard, HttpStatus.OK);
     }
 
     /**
      * Member 삭제
      * @param id
      * */
-    @DeleteMapping("/board/{id}")
+    @DeleteMapping("/boards/{id}")
     public ResponseEntity<?> deleteBoard(@PathVariable Long id){
-        boardSerivce.delete(id);
-        return ResponseEntity.ok().build();
+        int result = boardService.delete(id);
+        if (result == 0) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        return new ResponseEntity<>(HttpStatus.OK);
     }
     /**
      * Member 삭제
      * @param ids
      * */
-    @DeleteMapping("/board/batch")
+    @DeleteMapping("/boards/batch")
     public ResponseEntity<?> deleteBoardsBatch(@RequestBody List<Long> ids){
-        boardSerivce.deleteAllByIdInBatch(ids);
-        return ResponseEntity.ok().build();
-
+        int result = boardService.deleteAllByIdInBatch(ids);
+        if (result == 0) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }
