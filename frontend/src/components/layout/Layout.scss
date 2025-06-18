@@ -1,0 +1,41 @@
+.layout {
+  height: 100vh; /* 전체 화면 높이 */
+  display: flex;
+  flex-direction: column;
+}
+
+.main-container {
+  display: flex;
+  flex: 1;
+}
+
+.content-wrapper {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.content {
+  display: flex;
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
+}
+
+.footer {
+  height: 60px; /* footer 고정 높이 설정 */
+  border: 10px groove blue;
+  background-color: #f8f9fa;
+  flex-shrink: 0; /* 크기 고정 */
+}
+
+.title-area {
+  height: 80px;
+  background-color: #f8f9fa;
+  border-bottom: 2px solid #dee2e6;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  flex-shrink: 0;
+}

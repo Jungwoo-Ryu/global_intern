@@ -1,0 +1,7 @@
+.side {
+  display: flex;
+  flex-direction: column;
+  width: 15%;
+  min-width: 150px;
+  height: 100%; // 부모의 100% 높이
+}
